@@ -1,5 +1,5 @@
 import os
-import cv2
+import opencv as cv2
 import numpy as np
 import json
 import time
