@@ -1,11 +1,11 @@
-import streamlit as st
+import os
 import cv2
 import numpy as np
 import json
 import time
-import os
+import streamlit as st
 
-# Copy your existing code here (from importing libraries to defining functions)
+# Constants (keep them as is)
 # import os
 # import cv2
 # import numpy as np
@@ -73,7 +73,6 @@ def process_image(src_path, dst_path):
     print(f"Total number of plants: {plants_number}")
 
     # Display and save results
-    print(f"Image Path: {src_path}")
     cv2.imshow('Processed Image', src)
     cv2.imwrite(os.path.join(dst_path, "result.jpg"), src)
     cv2.waitKey(0)
@@ -128,12 +127,12 @@ def update_json(src_path, dst_path, data):
         json.dump(json_data, outfile, indent=2)
 
 
-def main():
-    src_path = "Images/6.jpg"
-    dst_path = "hsv_results/6"
+# def main():
+#     src_path = "Images/6.jpg"
+#     dst_path = "hsv_results/6"
 
-    ensure_dir(dst_path)
-    process_image(src_path, dst_path)
+#     ensure_dir(dst_path)
+#     process_image(src_path, dst_path)
 
 
 def ensure_dir(file_path):
@@ -142,38 +141,23 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 
+# if __name__ == "__main__":
+#     main()
+
+# Function definitions (keep them as is)
+
+def main():
+    st.title('Image Processing and Plant Counting App')
+
+    uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "jpeg"])
+    
+    if uploaded_file is not None:
+        # Create a folder for storing results
+        dst_path = "results"
+        ensure_dir(dst_path)
+        
+        # Process the uploaded image and display results
+        process_image(uploaded_file, dst_path)
+
 if __name__ == "__main__":
     main()
-
-# Merge the existing functions into the Streamlit app
-def process_and_display_image(uploaded_file):
-    if uploaded_file is not None:
-        # Save the uploaded image temporarily
-        temp_image_path = "temp_uploaded_image.jpg"
-        with open(temp_image_path, "wb") as f:
-            f.write(uploaded_file.getvalue())
-
-        # Create a folder to save results
-        result_dir = "result"
-        ensure_dir(result_dir)
-
-        # Process the uploaded image
-        process_image(temp_image_path, result_dir)
-
-        # Display the results
-        result_image_path = os.path.join(result_dir, "result.jpg")
-        st.image(result_image_path, caption='Processed Image', use_column_width=True)
-
-        # Display JSON data
-        json_path = os.path.join(result_dir, "details.json")
-        if os.path.exists(json_path):
-            with open(json_path, 'r') as json_file:
-                json_data = json.load(json_file)
-                st.json(json_data)
-
-# Streamlit app
-st.title('Image Processing and Plant Counting App')
-
-uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "jpeg"])
-if uploaded_file is not None:
-    process_and_display_image(uploaded_file)
