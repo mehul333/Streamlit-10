@@ -1,16 +1,9 @@
 import os
 import cv2
 import numpy as np
+import streamlit as st
 import json
 import time
-import streamlit as st
-
-# Constants (keep them as is)
-# import os
-# import cv2
-# import numpy as np
-# import json
-# import time
 
 # Constants
 MIN_GREEN_HUE = 45
@@ -25,9 +18,52 @@ ERODE_ITERATIONS = 2
 DILATE_ITERATIONS = 4
 AREA_THRESHOLD = 500  # Minimum contour area to consider as a plant
 
+st.set_page_config(page_title="Plant Counter", page_icon=":seedling:")
 
-def process_image(src_path, dst_path):
-    # Load the image
+# Add this at the beginning of the code
+TEMP_DIR = "temp_dir"
+
+def main():
+    st.title("Plant Counting and Analysis App")
+
+    # Create the temporary directory if it doesn't exist
+    ensure_temp_dir_exists()
+
+    # Allow the user to choose between uploading an image or using an example
+    option = st.radio("Choose an option:", ["Upload an image", "Use an example"])
+
+    if option == "Upload an image":
+        uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png", "mp4"])
+        if uploaded_image is not None:
+            # Get the file name
+            file_name = uploaded_image.name
+            temp_image_path = os.path.join(TEMP_DIR, file_name)
+            with open(temp_image_path, "wb") as f:
+                f.write(uploaded_image.read())
+            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+            process_image(temp_image_path)
+    else:
+        # Provide example options for users to choose from
+        example_option = st.selectbox("Choose an example:", ["Example 1", "Example 2", "Example 3"])
+
+        example_image_path = ""
+
+        if example_option == "Example 1":
+            example_image_path == "D:\XBA\venv\1.jpg"
+        elif example_option == "Example 2":
+            example_image_path = "D:\XBA\venv\WhatsApp Image 2023-09-21 at 12.18.26.jpg"
+        else:
+            example_image_path = "example_images/example3.jpg"
+
+        st.image(example_image_path, caption="Example Image", use_column_width=True)
+        process_image(example_image_path)
+
+def ensure_temp_dir_exists():
+    if not os.path.exists(TEMP_DIR):
+        os.makedirs(TEMP_DIR)
+
+def process_image(src_path):
+        # Load the image
     src = cv2.imread(src_path)
 
     # Convert the image to grayscale
@@ -52,9 +88,6 @@ def process_image(src_path, dst_path):
     masked = cv2.erode(masked, kernel, iterations=ERODE_ITERATIONS)
     masked = cv2.dilate(masked, kernel, iterations=DILATE_ITERATIONS)
 
-    # Save the masked image
-    cv2.imwrite(os.path.join(dst_path, "masked_image.jpg"), masked)
-
     # Find contours
     contours, _ = cv2.findContours(
         masked, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -70,94 +103,26 @@ def process_image(src_path, dst_path):
                              (0, 255, 0), 2)  # Green contour
 
     # Print the total number of plants
-    print(f"Total number of plants: {plants_number}")
+    st.write(f"Total number of plants: {plants_number}")
 
     # Display and save results
-    cv2.imshow('Processed Image', src)
-    cv2.imwrite(os.path.join(dst_path, "result.jpg"), src)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    st.image(src, caption="Processed Image", use_column_width=True)
 
-    # Create JSON data
-    data = {
-        "minH": MIN_GREEN_HUE,
-        "maxH": MAX_GREEN_HUE,
-        "minS": MIN_GREEN_SAT,
-        "maxS": MAX_GREEN_SAT,
-        "minV": MIN_GREEN_VAL,
-        "maxV": MAX_GREEN_VAL,
-        "erodeKernel": KERNEL_SIZE,
-        "erodeIterations": ERODE_ITERATIONS,
-        "dilateKernel": KERNEL_SIZE,
-        "dilateIterations": DILATE_ITERATIONS,
-        "plantsNumber": plants_number  # Add the total number of plants
-    }
+    # Clean up the temporary directory
+    clean_temp_dir()
 
-    update_json(src_path, dst_path, data)
-
-
-def update_json(src_path, dst_path, data):
-    src_imgname = os.path.basename(src_path)
-    json_path = os.path.join(dst_path, "details.json")  # Updated path
-
-    json_data = {
-        "source": src_imgname,
-        "images": {
-            src_imgname: {
-                "date": time.strftime("%Y-%m-%d", time.gmtime()),
-                "operations": [
-                    f"h {data['minH']}-{data['maxH']}",
-                    f"s {data['minS']}-{data['maxS']}",
-                    f"v {data['minV']}-{data['maxV']}",
-                    f"erode {data['erodeKernel']} x{data['erodeIterations']}",
-                    f"dilate {data['dilateKernel']} x{data['dilateIterations']}"
-                ],
-                # Add the total number of plants
-                "plantsNumber": data["plantsNumber"]
-            }
-        }
-    }
-
-    if os.path.exists(json_path):
-        with open(json_path, 'r') as infile:
-            existing_data = json.load(infile)
-            json_data.update(existing_data)
-
-    with open(json_path, 'w') as outfile:
-        json.dump(json_data, outfile, indent=2)
-
-
-# def main():
-#     src_path = "Images/6.jpg"
-#     dst_path = "hsv_results/6"
-
-#     ensure_dir(dst_path)
-#     process_image(src_path, dst_path)
-
-
-def ensure_dir(file_path):
-    directory = os.path.dirname(file_path)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-
-# if __name__ == "__main__":
-#     main()
-
-# Function definitions (keep them as is)
-
-def main():
-    st.title('Image Processing and Plant Counting App')
-
-    uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "jpeg"])
-    
-    if uploaded_file is not None:
-        # Create a folder for storing results
-        dst_path = "results"
-        ensure_dir(dst_path)
-        
-        # Process the uploaded image and display results
-        process_image(uploaded_file, dst_path)
+def clean_temp_dir():
+    temp_dir = "temp_dir"
+    if os.path.exists(temp_dir):
+        for filename in os.listdir(temp_dir):
+            file_path = os.path.join(temp_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)
+        os.rmdir(temp_dir)
+    # Rest of your image processing code here...
 
 if __name__ == "__main__":
     main()
