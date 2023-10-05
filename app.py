@@ -42,21 +42,21 @@ def main():
                 f.write(uploaded_image.read())
             st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
             process_image(temp_image_path)
-    else:
-        # Provide example options for users to choose from
-        example_option = st.selectbox("Choose an example:", ["Example 1", "Example 2", "Example 3"])
+    # else:
+    #     # Provide example options for users to choose from
+    #     example_option = st.selectbox("Choose an example:", ["Example 1", "Example 2", "Example 3"])
 
-        example_image_path = ""
+    #     example_image_path = ""
 
-        if example_option == "Example 1":
-            example_image_path == "D:\XBA\venv\1.jpg"
-        elif example_option == "Example 2":
-            example_image_path = "D:\XBA\venv\WhatsApp Image 2023-09-21 at 12.18.26.jpg"
-        else:
-            example_image_path = "example_images/example3.jpg"
+    #     if example_option == "Example 1":
+    #         example_image_path == "D:\XBA\venv\1.jpg"
+    #     elif example_option == "Example 2":
+    #         example_image_path = "D:\XBA\venv\WhatsApp Image 2023-09-21 at 12.18.26.jpg"
+    #     else:
+    #         example_image_path = "example_images/example3.jpg"
 
-        st.image(example_image_path, caption="Example Image", use_column_width=True)
-        process_image(example_image_path)
+    #     st.image(example_image_path, caption="Example Image", use_column_width=True)
+    #     process_image(example_image_path)
 
 def ensure_temp_dir_exists():
     if not os.path.exists(TEMP_DIR):
